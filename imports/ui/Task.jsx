@@ -1,40 +1,57 @@
 import React, { Component, PropTypes } from 'react';
-
-import { Tasks } from '../api/tasks.js';
+import { Meteor } from 'meteor/meteor';
 
 // Task component - represents a single todo item
 export default class Task extends Component {
   toggleChecked() {
     // Set the checked property to the opposite of its current value
-    Tasks.update(this.props.task._id, {
-      $set: { checked: !this.props.task.checked },
-    });
+    Meteor.call('tasks.setChecked', this.props.task._id, !this.props.task.checked);
+    this.render();
   }
 
   deleteThisTask() {
-    Tasks.remove(this.props.task._id);
+    Meteor.call('tasks.remove', this.props.task._id);
+  }
+
+  showFormattedTime(date)
+  {
+    if(typeof date == 'undefined')
+        return '';
+
+    var text = "";
+
+    text += date.getDate();
+    text += "/";
+    text += date.getMonth();
+    text += " ";
+    text += date.getHours();
+    text += ":";
+    text += date.getMinutes();
+    text += ":";
+    text += date.getSeconds();
+
+    return text;
   }
 
   render() {
-    // Give tasks a different className when they are checked off,
-    // so that we can style them nicely in CSS
-    const taskClassName = this.props.task.checked ? 'checked' : '';
-
     return (
-      <li className={taskClassName}>
-        <button className="delete" onClick={this.deleteThisTask.bind(this)}>
-          &times;
-        </button>
-
+      <div className="row col-md-12">
         <input
           type="checkbox"
+          className="col-md-1"
           readOnly
           checked={this.props.task.checked}
           onClick={this.toggleChecked.bind(this)}
         />
 
-        <span className="text">{this.props.task.text}</span>
-      </li>
+    <h4 className="text tekst col-md-3">{this.props.task.text}</h4>
+        <h4 className="text tekst1 col-md-3">Startede: {this.showFormattedTime(this.props.task.createdAt)}</h4>
+        <h4 className="text tekst2 col-md-3">{this.props.task.finishedAt ? "Sluttede:" : ""} {this.showFormattedTime(this.props.task.finishedAt)}</h4>
+
+        <div className="btn btn-danger pull-right col-md-1" onClick={this.deleteThisTask.bind(this)}>
+          Slet
+        </div>
+      </div>
     );
   }
 }
